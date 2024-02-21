@@ -1,0 +1,56 @@
+Medidas Criadas em DAX
+
+1-Horas Paradas: a consulta calcula a soma das horas entre o início e o fim de cada ocorrência na tabela 'BaseProdução', excluindo as linhas onde a coluna 'Ocorrencia' está em branco,
+computando somente as linhas com ocorrência de erro.
+HorasParadas = 
+    SUMX(
+        FILTER(
+            'BaseProdução',
+            NOT(ISBLANK('BaseProdução'[Ocorrencia]))
+        ),
+        DATEDIFF('BaseProdução'[inicio], 'BaseProdução'[fim], HOUR)
+    )
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2-Horas Produtivas: a consulta calcula a soma das horas entre o início e o fim de cada ocorrência na tabela 'BaseProdução', computando somente as linhas onde a coluna 'Ocorrencia' está em branco, 
+ou seja, sem ocorrência de erro. 
+HorasProdutivas = 
+    SUMX(
+        FILTER(
+            'BaseProdução',
+            (ISBLANK('BaseProdução'[Ocorrencia])
+        ),
+        DATEDIFF('BaseProdução'[inicio], 'BaseProdução'[fim], HOUR)
+    )
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3- Horas Total:  a consulta calcula a soma das horas trabalhadas.
+HorasTotal = 
+    CALCULATE(
+        SUMX('BaseProdução',
+        DATEDIFF('BaseProdução'[inicio], 'BaseProdução'[fim], HOUR)
+    ))
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+4- Qde Teorica:  a consulta calcula a quantidade teórica de produção (capacidade de produção) multiplicando as horas produtivas de cada produto pelo seu respectivo rendimento em peças por hora,
+conforme registrado na tabela 'CadastroProdutos'.
+QdeTeorica =
+ CALCULATE(
+    SUMX(
+        CadastroProdutos,
+            [HorasProdutivas]* CadastroProdutos[Peças Hora]))
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------                                                                     
+5- A consulta soma a quantidade de itens rejeitados, ou seja, com defeito.
+Qde Rejeitada = SUM('BaseProdução'[Qtd Rejeitada])
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+6- A consulta soma a quantidade de itens totais produzidos.
+QdeProduzida = SUM('BaseProdução'[QtdProduzida])
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+DEMAIS KPIS CALCULADOS COM AS MÉTRICAS ACIMA.
+
+7- Disponibilidade = [HorasProdutivas]/[HorasTotal]
+8- Produtividade = [QdeProduzida]/[QdeTeorica]
+9- Qualidade = [QdeProduzida] / ([QdeProduzida]+[QdeRejeitada])
+10- OEE = [Disponibilidade]*[Produtividade]*[Qualidade]
+
